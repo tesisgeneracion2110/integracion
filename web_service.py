@@ -2,7 +2,6 @@ import os
 import time
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
-from __init__ import renderize_voice
 
 UPLOAD_DIRECTORY = "."
 
@@ -23,9 +22,9 @@ def voice():
     print (content['tempo'])
     print (content['method'])
     print (content['language'])
-    renderize_voice(content['lyrics'], content['midi'],content['sex'] ,content['tempo'] ,'.' , content['method'],content['language'],content['out_name'])
+   
 
-    return jsonify({"download_link":"http://0.0.0.0:5000/files/"+content['out_name']+".wav"})
+    return "respuesta desde integracion"
 
 @api.route("/files" , methods = [ 'GET'])
 def list_files():
