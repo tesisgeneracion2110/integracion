@@ -23,8 +23,9 @@ def voice():
     print (content['tempo'])
     print (content['method'])
     print (content['language'])
-    renderize_voice(content['lyrics'], content['midi'],content['sex'] ,content['tempo'] ,'./archivos' , content['method'],content['language'$
-    return jsonify({"download_link":"http://0.0.0.0:5000/files/"+"out_name"})
+    renderize_voice(content['lyrics'], content['midi'],content['sex'] ,content['tempo'] ,'.' , content['method'],content['language'],content['out_name'])
+
+    return jsonify({"download_link":"http://0.0.0.0:5000/files/"+content['out_name']+".wav"})
 
 @api.route("/files" , methods = [ 'GET'])
 def list_files():
@@ -40,7 +41,6 @@ def list_files():
 @api.route("/files/<path:path>")
 def get_file(path):
     """Download a file."""
-    time.sleep(10)
     return send_from_directory(UPLOAD_DIRECTORY, path, as_attachment=True)
                                                                                                                                   
                                                                                                                                   
