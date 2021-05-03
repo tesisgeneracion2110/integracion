@@ -1,5 +1,6 @@
 import os
 import time
+import requests
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
 
@@ -22,9 +23,9 @@ def voice():
     print (content['tempo'])
     print (content['method'])
     print (content['language'])
-   
+    r = requests.post("http://127.0.0.1:5000/voice" , json = content)
 
-    return "respuesta desde integracion"
+    return r.text
 
 @api.route("/files" , methods = [ 'GET'])
 def list_files():
