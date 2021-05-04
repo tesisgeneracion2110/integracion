@@ -1,3 +1,4 @@
+import wget
 import os
 import time
 import requests
@@ -13,9 +14,20 @@ api = Flask(__name__)
 api.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 
+def enviar_archivos_server(API_URL , filename):
+    fin = open(filename, 'rb')
+    files = {'file': fin}
+    try:
+        r = requests.post(API_URL, files=files)
+        print (r.text)
+    finally:
+        fin.close()
+
+
 @api.route("/voice" , methods=[ 'POST'])
 def voice():
     content = request.json
+    print("--------------------------------------------------------integracion voz")
     print (content['out_name'])
     print (content['lyrics'])
     print (content['midi'])
@@ -23,8 +35,13 @@ def voice():
     print (content['tempo'])
     print (content['method'])
     print (content['language'])
-    r = requests.post("http://127.0.0.1:5000/voice" , json = content)
-
+    enviar_archivos_server('http://127.0.0.1:5050/', content['lyrics'])
+    enviar_archivos_server('http://127.0.0.1:5050/', content['midi'])
+    r = requests.post("http://127.0.0.1:5050/voice" , json = content)
+    wget.download("http://127.0.0.1:5050/files/"+content['out_name']+".wav")
+    wget.download("http://127.0.0.1:5050/files/voice.xml")
+    r2= requests.post("http://127.0.0.1:5050/download_voice" , json={"mytext":"lalala"})
+    #print (r2.text)
     return r.text
 
 @api.route("/files" , methods = [ 'GET'])
