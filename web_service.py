@@ -74,7 +74,7 @@ def post_file(filename):
     # Return 201 CREATED
     return "", 201
                                                                                                                                   
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = '.'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
