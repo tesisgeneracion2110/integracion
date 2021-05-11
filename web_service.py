@@ -41,7 +41,7 @@ def voice():
     r = requests.post("http://127.0.0.1:5050/voice" , json = content)
     wget.download("http://127.0.0.1:5050/files/"+content['out_name']+".wav")
     wget.download("http://127.0.0.1:5050/files/voice.xml")
-    r2= requests.post("http://127.0.0.1:5050/download_voice" , json={"mytext":"lalala"})
+    #r2= requests.post("http://127.0.0.1:5050/download_voice" , json={"mytext":"lalala"})
     #print (r2.text)
     return r.text
 
