@@ -10,6 +10,7 @@ RUN apt-get update
 RUN apt install -y python3-pip
 RUN apt-get install -y nano
 RUN pip3 install requests
+RUN pip3 install wget
 
 
 
