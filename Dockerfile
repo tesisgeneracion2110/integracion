@@ -21,7 +21,7 @@ RUN cd content && git clone https://github.com/tesisgeneracion2110/integration.g
 RUN cd content/integration && \
     wget -O shallow.mid https://github.com/mathigatti/midi2voice/blob/master/inputs/shallow.mid?raw=true && \
     wget -O shallow.txt https://raw.githubusercontent.com/mathigatti/midi2voice/master/inputs/shallow.txt && \
-    pip3 install Flask==0.10.1
+    pip3 install Flask
     
 #RUN cd content/integration && \ 
 #    python3 web_service.py
