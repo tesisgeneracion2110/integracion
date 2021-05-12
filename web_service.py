@@ -1,8 +1,8 @@
-
 import wget
 import os
 import time
 import requests
+import constants as ct
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
 
@@ -15,37 +15,68 @@ api = Flask(__name__)
 api.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 
-def enviar_archivos_server(API_URL , filename):
+def send_files_server(api_url, filename):
     fin = open(filename, 'rb')
     files = {'file': fin}
     try:
-        r = requests.post(API_URL, files=files)
-        print (r.text)
+        r = requests.post(api_url, files=files)
+        print(r.text)
     finally:
         fin.close()
 
 
-@api.route("/voice" , methods=[ 'POST'])
+def get_lyric_file(uri):
+    print(uri)
+    response = requests.get(uri)
+    print("response: ", response)
+    if response.status_code == 200:
+        data = response.json()
+        print("data lyric: ", data)
+        lyric_download = ct.URI_LYRICS + ct.ENDPOINT_LYRIC_DOWNLOAD + "/" + data
+        print("lyric_download: ", lyric_download)
+        wget.download(lyric_download, ct.DIR_PATH_DOWNLOADS)
+        return ct.DIR_PATH_DOWNLOADS + data
+
+
+@api.route("/test")
+def get_only_lyric():
+    get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
+    return jsonify("terminated")
+
+
+@api.route("/test")
+def generate_song():
+    dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
+
+
+@api.route("/voice", methods=['POST'])
 def voice():
     content = request.json
-    print("--------------------------------------------------------integracion voz")
-    print (content['out_name'])
-    print (content['lyrics'])
-    print (content['midi'])
-    print (content['sex'])
-    print (content['tempo'])
-    print (content['method'])
-    print (content['language'])
-    enviar_archivos_server('http://127.0.0.1:5050/', content['lyrics'])
-    enviar_archivos_server('http://127.0.0.1:5050/', content['midi'])
-    r = requests.post("http://127.0.0.1:5050/voice" , json = content)
-    wget.download("http://127.0.0.1:5050/files/"+content['out_name']+".wav")
-    wget.download("http://127.0.0.1:5050/files/voice.xml")
-    #r2= requests.post("http://127.0.0.1:5050/download_voice" , json={"mytext":"lalala"})
-    #print (r2.text)
+
+    print("--------------------------------------------------------integration voz")
+    print(content['out_name'])
+    print(content['lyrics'])
+    print(content['midi'])
+    print(content['sex'])
+    print(content['tempo'])
+    print(content['method'])
+    print(content['language'])
+
+    # Download and send lyric file
+    dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
+    send_files_server(ct.URI_LYRICS, dir_lyric)
+
+    send_files_server(ct.URI_MIDI, content['midi'])
+    r = requests.post(ct.URI_VOICE, json=content)
+    wget.download(ct.URI_FILES + content['out_name'] + ".wav")
+    wget.download(ct.URI_VOICE_XML)
+    r2 = requests.post(ct.URI_VOICE_DOWNLOAD, json={"mytext": "lalala"})
+    # print (r2.text)
+
     return r.text
 
-@api.route("/files" , methods = [ 'GET'])
+
+@api.route("/files", methods=['GET'])
 def list_files():
     """Endpoint to list files on the server."""
     files = []
@@ -60,8 +91,8 @@ def list_files():
 def get_file(path):
     """Download a file."""
     return send_from_directory(UPLOAD_DIRECTORY, path, as_attachment=True)
-                                                                                                                                  
-                                                                                                                                  
+
+
 @api.route("/files/<filename>", methods=["POST"])
 def post_file(filename):
     """Upload a file."""
@@ -74,31 +105,34 @@ def post_file(filename):
 
     # Return 201 CREATED
     return "", 201
-                                                                                                                                  
+
+
 UPLOAD_FOLDER = '.'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 api.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def allowed_file(filename):
-  # this has changed from the original example because the original did not work for me
-    return filename[-3:].lower() in ALLOWED_EXTENSIONS
 
-@api.route('/', methods=[ 'POST'])
+# def allowed_file(filename):
+# this has changed from the original example because the original did not work for me
+# return filename[-3:].lower() in ALLOWED_EXTENSIONS
+
+
+@api.route('/', methods=['POST'])
 def upload_file():
-        file = request.files['file']
-        print ('**found file', file.filename)
-        #filename = secure_filename(file.filename)
-        file.save(os.path.join(api.config['UPLOAD_FOLDER'], file.filename))
-        # for browser, add 'redirect' function on top of 'url_for'
-        return url_for('uploaded_file', filename=file.filename)
+    file = request.files['file']
+    print('**found file', file.filename)
+    # filename = secure_filename(file.filename)
+    file.save(os.path.join(api.config['UPLOAD_FOLDER'], file.filename))
+    # for browser, add 'redirect' function on top of 'url_for'
+    return url_for('uploaded_file', filename=file.filename)
+
 
 @api.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(api.config['UPLOAD_FOLDER'],filename)
+    return send_from_directory(api.config['UPLOAD_FOLDER'], filename)
 
 
 if __name__ == "__main__":
-    api.run(debug=True, port = 8000)
-
+    api.run(debug=True, port=8000)
