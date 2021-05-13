@@ -59,7 +59,7 @@ def generate_music(content):
 
 
 @api.route("/song", methods=['POST'])
-def generate_music():
+def generate_only_music():
     dir_files = generate_music(request.json)
     return jsonify(dir_files)
 
@@ -70,17 +70,12 @@ def get_only_lyric():
     return jsonify("terminated")
 
 
-@api.route("/song")
-def generate_song():
-    dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
-    return "To be continue"
-
 @api.route("/voice", methods=['POST'])
 def voice():
-
     # Download and send lyric file
     dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
-    send_files_server(ct.URI_LYRICS, ct.DIR_PATH_DOWNLOADS + dir_lyric)
+    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_lyric)
+    print("entra 1")
 
     request_default = jsonify({
         "bpm": 90,
@@ -94,9 +89,10 @@ def voice():
             ["chorus", 1]
         ]
     })
+    print("entra 2")
     #  Download and send midi, wav file
     dir_files = generate_music(request_default)
-    send_files_server(ct.URI_MIDI, ct.DIR_PATH_DOWNLOADS + dir_files['midi'])
+    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['midi'])
     #send_files_server(ct.URI_WAV, ct.DIR_PATH_DOWNLOADS + dir_files['wav'])
 
     # bpm, how to send?
