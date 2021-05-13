@@ -12,3 +12,4 @@ URI_MUSIC = "http://127.0.0.1:4000/"
 ENDPOINT_MUSIC = "music"
 
 DIR_PATH_DOWNLOADS = "files/"
+VOICE_OUT_NAME = "voice.wav"

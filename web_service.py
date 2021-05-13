@@ -35,34 +35,34 @@ def get_lyric_file(uri):
         lyric_download = ct.URI_LYRICS + ct.ENDPOINT_LYRIC_DOWNLOAD + "/" + data
         print("lyric_download: ", lyric_download)
         wget.download(lyric_download, ct.DIR_PATH_DOWNLOADS)
-        return ct.DIR_PATH_DOWNLOADS + data
+        return data
     return "error"
 
 
-def generate_music():
-    content = request.json
+def generate_music(content):
     response = requests.post(ct.URI_MUSIC + ct.ENDPOINT_MUSIC, json=content)
     if response.status_code == 200:
         data = response.json()
         print("data music: ", data)
-        midi = content['melody']
+        midi = data['melody']
         # http://127.0.0.1:4000/music/file.mid
         midi_download = ct.URI_MUSIC + ct.ENDPOINT_MUSIC + "/" + midi
         wget.download(midi_download, ct.DIR_PATH_DOWNLOADS)
         print("midi_download: ", midi_download)
 
-        wav = content['music']
+        wav = data['music']
         # http://127.0.0.1:4000/music/file.wav
         wav_download = ct.URI_MUSIC + ct.ENDPOINT_MUSIC + "/" + wav
         wget.download(wav_download, ct.DIR_PATH_DOWNLOADS)
         print("wav_download: ", wav_download)
-        return {"midi": midi, "wav": wav}
+        return {"midi": midi, "wav": wav, "bpm": data['bpm']}
 
 
 @api.route("/song", methods=['POST'])
 def generate_music():
-    dir_files = generate_music()
+    dir_files = generate_music(request.json)
     return jsonify(dir_files)
+
 
 @api.route("/test")
 def get_only_lyric():
@@ -73,39 +73,57 @@ def get_only_lyric():
 @api.route("/song")
 def generate_song():
     dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
-
+    return "To be continue"
 
 @api.route("/voice", methods=['POST'])
 def voice():
-    content = request.json
-
-    print("--------------------------------------------------------integration voz")
-    print(content['out_name'])
-    print(content['lyrics'])
-    print(content['midi'])
-    print(content['sex'])
-    print(content['tempo'])
-    print(content['method'])
-    print(content['language'])
 
     # Download and send lyric file
     dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
-    send_files_server(ct.URI_LYRICS, dir_lyric)
+    send_files_server(ct.URI_LYRICS, ct.DIR_PATH_DOWNLOADS + dir_lyric)
 
+    request_default = jsonify({
+        "bpm": 90,
+        "root": "A",
+        "scale": "minor",
+        "n_chords": 4,
+        "progression": [3, 4, 5, 7],
+        "n_beats": 2,
+        "structure": [
+            ["intro", 1],
+            ["chorus", 1]
+        ]
+    })
     #  Download and send midi, wav file
-    dir_files = generate_music()
+    dir_files = generate_music(request_default)
     send_files_server(ct.URI_MIDI, ct.DIR_PATH_DOWNLOADS + dir_files['midi'])
-    send_files_server(ct.URI_WAV, ct.DIR_PATH_DOWNLOADS + dir_files['wav'])
+    #send_files_server(ct.URI_WAV, ct.DIR_PATH_DOWNLOADS + dir_files['wav'])
 
     # bpm, how to send?
 
-    r = requests.post(ct.URI_VOICE, json=content)
-    wget.download(ct.URI_FILES + content['out_name'] + ".wav")
+    request_default_voice = jsonify(
+        {
+            "out_name": ct.VOICE_OUT_NAME,
+            "lyrics": dir_lyric,
+            "midi": dir_files['midi'],
+            "sex": "male",
+            "tempo": dir_files['bpm'],
+            "method": 1,
+            "language": "es"
+        }
+    )
+    response = requests.post(ct.URI_VOICE, json=request_default_voice)
+    wget.download(ct.URI_FILES + ct.VOICE_OUT_NAME, ct.DIR_PATH_DOWNLOADS)
     wget.download(ct.URI_VOICE_XML)
-    r2 = requests.post(ct.URI_VOICE_DOWNLOAD, json={"mytext": "lalala"})
-    # print (r2.text)
 
-    return r.text
+    return jsonify(
+        {
+            "lyric": dir_lyric,
+            "voice": ct.VOICE_OUT_NAME,
+            "melody": dir_files['midi'],
+            "music": dir_files['wav']
+        }
+    )
 
 
 @api.route("/files", methods=['GET'])
