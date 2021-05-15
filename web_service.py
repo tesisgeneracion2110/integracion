@@ -81,9 +81,13 @@ def song():
     send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['midi'])
     send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['wav'])
 
+    serial = dir_files['midi'].replace('.mid', '').replace('melody_', '')
+
+    print(serial)
+
     voice = {
-        "out_name": ct.VOICE_OUT_NAME,
-        "lyrics": "shallow.txt",
+        "out_name": serial,
+        "lyrics": dir_lyric,
         "midi": dir_files['midi'],
         "sex": "male",
         "tempo": dir_files['bpm'],
@@ -96,6 +100,9 @@ def song():
     data = response_voice.json()
     print(data)
 
+    print(ct.URI_FILES + data['voice'])
+    print(ct.URI_FILES + data['song'])
+    print(ct.URI_FILES + data['voicexml'])
     wget.download(ct.URI_FILES + data['voice'], ct.DIR_PATH_DOWNLOADS)
     wget.download(ct.URI_FILES + data['song'], ct.DIR_PATH_DOWNLOADS)
     wget.download(ct.URI_FILES + data['voicexml'], ct.DIR_PATH_DOWNLOADS)
@@ -225,6 +232,7 @@ api.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # return filename[-3:].lower() in ALLOWED_EXTENSIONS
 
 
+"""
 @api.route('/', methods=['POST'])
 def upload_file():
     file = request.files['file']
@@ -238,6 +246,7 @@ def upload_file():
 @api.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(api.config['UPLOAD_FOLDER'], filename)
+"""
 
 
 if __name__ == "__main__":
