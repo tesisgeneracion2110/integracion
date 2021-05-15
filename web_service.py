@@ -4,6 +4,7 @@ import time
 import requests
 import constants as ct
 import json
+import random
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
 
@@ -69,33 +70,16 @@ def generate_only_lyric():
     return jsonify({"lyrics": lyrics_file})
 
 
-@api.route("/song")
+@api.route("/song", methods=['POST'])
 def song():
     dir_lyric = get_lyrics_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
     send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_lyric)
 
-    song = {
-        "root": "A",
-        "scale": "minor",
-        "n_chords": 4,
-        "progression": [3, 4, 5, 7],
-        "n_beats": 2,
-        "structure": [
-            ["intro", 1],
-            ["chorus", 1]
-        ]
-    }
+    data = request.json
+    dir_files = generate_music(data['music'])
 
-    # request_default = json.dumps(song, sort_keys=True)
-
-    print("entra 2")
-    #  Download and send midi, wav file
-    dir_files = generate_music(song)
     send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['midi'])
     send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['wav'])
-    print("envió archivos")
-
-    # bpm, how to send?
 
     voice = {
         "out_name": ct.VOICE_OUT_NAME,
@@ -108,13 +92,8 @@ def song():
         "music": dir_files['wav']
     }
 
-    # HEADERS = {'Content-Type': 'application/json; charset=utf-8'}
-    # response = requests.post(ct.URI_VOICE, json=request_default_voice, headers=HEADERS)
-
     response_voice = requests.post(ct.URI_VOICE, json=voice)
-
     data = response_voice.json()
-
     print(data)
 
     wget.download(ct.URI_FILES + data['voice'], ct.DIR_PATH_DOWNLOADS)
