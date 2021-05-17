@@ -5,6 +5,7 @@ import requests
 import constants as ct
 import json
 import random
+import secrets
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
 
@@ -73,7 +74,6 @@ def generate_only_lyric():
 @api.route("/song", methods=['POST'])
 def song():
     dir_lyric = get_lyrics_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
-    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_lyric)
 
     data = request.json
     dir_files = generate_music(data['music'])
@@ -84,10 +84,13 @@ def song():
     serial = dir_files['midi'].replace('.mid', '').replace('melody_', '')
 
     print(serial)
+    new_dir_lyric = 'lyrics_' + serial + '.txt'
+    os.rename(ct.DIR_PATH_DOWNLOADS + dir_lyric, ct.DIR_PATH_DOWNLOADS + new_dir_lyric)
+    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + new_dir_lyric)
 
     voice = {
         "out_name": serial,
-        "lyrics": dir_lyric,
+        "lyrics": new_dir_lyric,
         "midi": dir_files['midi'],
         "sex": "male",
         "tempo": dir_files['bpm'],
@@ -110,7 +113,7 @@ def song():
 
     return jsonify(
         {
-            "lyric": dir_lyric,
+            "lyric": new_dir_lyric,
             "voice": data['voice'],
             "melody": dir_files['midi'],
             "music": dir_files['wav'],
@@ -118,75 +121,6 @@ def song():
             "voicexml": data['voicexml']
         }
     )
-
-
-"""
-@api.route("/voice", methods=['POST'])
-def voice():
-    # Download and send lyric file
-    dir_lyric = get_lyric_file(ct.URI_LYRICS + ct.ENDPOINT_LYRIC)
-    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_lyric)
-
-    song = {
-        "bpm": 90,
-        "root": "A",
-        "scale": "minor",
-        "n_chords": 4,
-        "progression": [3, 4, 5, 7],
-        "n_beats": 2,
-        "structure": [
-            ["intro", 1],
-            ["chorus", 1]
-        ]
-    }
-
-    # request_default = json.dumps(song, sort_keys=True)
-
-    print("entra 2")
-    #  Download and send midi, wav file
-    dir_files = generate_music(song)
-    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['midi'])
-    send_files_server(ct.URI_VOICE_SEND, ct.DIR_PATH_DOWNLOADS + dir_files['wav'])
-    print("envió archivos")
-
-    # bpm, how to send?
-
-    voice = {
-        "out_name": ct.VOICE_OUT_NAME,
-        "lyrics": "shallow.txt",
-        "midi": dir_files['midi'],
-        "sex": "male",
-        "tempo": dir_files['bpm'],
-        "method": 1,
-        "language": "es",
-        "music": dir_files['wav']
-    }
-
-    # HEADERS = {'Content-Type': 'application/json; charset=utf-8'}
-    # response = requests.post(ct.URI_VOICE, json=request_default_voice, headers=HEADERS)
-
-    response_voice = requests.post(ct.URI_VOICE, json=voice)
-
-    data = response_voice.json()
-
-    print(data)
-
-    wget.download(ct.URI_FILES + data['voice'], ct.DIR_PATH_DOWNLOADS)
-    wget.download(ct.URI_FILES + data['song'], ct.DIR_PATH_DOWNLOADS)
-    wget.download(ct.URI_FILES + data['voicexml'], ct.DIR_PATH_DOWNLOADS)
-    # wget.download(ct.URI_VOICE_XML)
-
-    return jsonify(
-        {
-            "lyric": dir_lyric,
-            "voice": data['voice'],
-            "melody": dir_files['midi'],
-            "music": dir_files['wav'],
-            "song": data['song'],
-            "voicexml": data['voicexml']
-        }
-    )
-"""
 
 
 @api.route("/files", methods=['GET'])
