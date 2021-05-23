@@ -6,6 +6,7 @@ import constants as ct
 import json
 import random
 import secrets
+from flask_cors import CORS
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
 
@@ -15,6 +16,7 @@ if not os.path.exists(UPLOAD_DIRECTORY):
     os.makedirs(UPLOAD_DIRECTORY)
 
 api = Flask(__name__)
+cors = CORS(api, resources={r"/*": {"origins": "*"}})
 
 api.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
@@ -159,28 +161,6 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 api.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
-# def allowed_file(filename):
-# this has changed from the original example because the original did not work for me
-# return filename[-3:].lower() in ALLOWED_EXTENSIONS
-
-
-"""
-@api.route('/', methods=['POST'])
-def upload_file():
-    file = request.files['file']
-    print('**found file', file.filename)
-    # filename = secure_filename(file.filename)
-    file.save(os.path.join(api.config['UPLOAD_FOLDER'], file.filename))
-    # for browser, add 'redirect' function on top of 'url_for'
-    return url_for('uploaded_file', filename=file.filename)
-
-
-@api.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(api.config['UPLOAD_FOLDER'], filename)
-"""
 
 
 if __name__ == "__main__":
