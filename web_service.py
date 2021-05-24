@@ -10,7 +10,7 @@ from flask_cors import CORS
 
 from flask import Flask, request, abort, jsonify, send_from_directory, redirect, url_for
 
-UPLOAD_DIRECTORY = "."
+UPLOAD_DIRECTORY = "./files/"
 
 if not os.path.exists(UPLOAD_DIRECTORY):
     os.makedirs(UPLOAD_DIRECTORY)
